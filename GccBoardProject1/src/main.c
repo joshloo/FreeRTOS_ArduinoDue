@@ -29,6 +29,56 @@
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 #include <asf.h>
+#include <uart.h>
+
+#define MY_LED_1 IOPORT_CREATE_PIN(PIOC, 21)
+#define MY_LED_2 IOPORT_CREATE_PIN(PIOB, 27)
+#define MY_LED_3 IOPORT_CREATE_PIN(PIOC, 22)
+
+uint8_t *received_byte;
+xTaskHandle worker_rx_id;
+xTaskHandle worker_tx_id;
+xQueueHandle Queue_id;
+
+xSemaphoreHandle semaphore_uart_tx;
+xSemaphoreHandle semaphore_uart_rx;
+
+void vTaskRX(void *pvParameters) {
+	char c;
+	while (1){
+		if (xSemaphoreTake(semaphore_uart_rx, 100)){
+			uint8_t *getchar ;
+			usart_serial_getchar(UART, &getchar);
+			
+			if (Queue_id != 0) xQueueSend(Queue_id, (void *)&getchar, 1000);
+
+			ioport_toggle_pin_level(MY_LED_1);
+			//usart_serial_putchar(UART, getchar);
+			xSemaphoreGive(semaphore_uart_tx);
+		}
+	}	
+}
+
+void vTaskTX(void *pvParameters) {
+	char c;
+	while (1){
+		if (xSemaphoreTake(semaphore_uart_tx, 100)){
+			uint8_t *putchar ;
+			if (Queue_id != 0) xQueueReceive(Queue_id,&putchar,1000);
+
+			usart_serial_putchar(UART, putchar);
+			ioport_toggle_pin_level(MY_LED_2);
+			xSemaphoreGive(semaphore_uart_rx);
+		}
+	}
+}
+
+static usart_serial_options_t usart_options = {
+	.baudrate = 9600,
+	.charlength = US_MR_CHRL_8_BIT,
+	.paritytype = US_MR_PAR_NO,
+	.stopbits = US_MR_NBSTOP_1_BIT
+};
 
 /* Task handler declaration*/
 xTaskHandle worker1_id;
@@ -42,11 +92,6 @@ xSemaphoreHandle semaphore_2;
 xSemaphoreHandle semaphore_3;
 xTaskHandle manager_id;
 
-xQueueHandle Queue_id;
-
-#define MY_LED_1 IOPORT_CREATE_PIN(PIOC, 21)
-#define MY_LED_2 IOPORT_CREATE_PIN(PIOB, 27)
-#define MY_LED_3 IOPORT_CREATE_PIN(PIOC, 22)
 
 static void my_led_task_1(void *pvParameters){
 	while(1){
@@ -148,7 +193,31 @@ int main (void)
 	vQueueAddToRegistry(semaphore_3, "Semaphore 3");
 	xSemaphoreTake(semaphore_3, 0);
 
-	xSemaphoreGive(semaphore_1);
+	//xSemaphoreGive(semaphore_1);
+
+	usart_serial_init(UART, &usart_options);
+	xTaskCreate(vTaskRX, "RX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_rx_id);
+	xTaskCreate(vTaskTX, "TX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_id);
+
+	vSemaphoreCreateBinary(semaphore_uart_rx);
+	vQueueAddToRegistry(semaphore_uart_rx, "Semaphore rx");
+	xSemaphoreTake(semaphore_uart_rx, 0);
+
+	vSemaphoreCreateBinary(semaphore_uart_tx);
+	vQueueAddToRegistry(semaphore_uart_tx, "Semaphore tx");
+	xSemaphoreTake(semaphore_uart_tx, 0);
+
+	xSemaphoreGive(semaphore_uart_rx);
+
+	/* Create a queue*/
+	Queue_id = xQueueCreate(1,sizeof(uint8_t *));
+
+	/*
+	while(1){
+		usart_serial_getchar(UART, &received_byte);
+		usart_serial_putchar(UART, received_byte);		
+	}*/
+
 /*
 	ioport_set_pin_level(MY_LED_1, false);
 	ioport_set_pin_level(MY_LED_2, false);
@@ -172,3 +241,8 @@ int main (void)
 	/*Start Scheduler*/
 	vTaskStartScheduler();
 }
+
+/*
+sysclk_enable_peripheral_clock(CONSOLE_UART_ID);
+stdio_serial_init(CONF_UART)
+*/

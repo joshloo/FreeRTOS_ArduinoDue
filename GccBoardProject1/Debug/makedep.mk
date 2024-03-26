@@ -4,6 +4,12 @@
 
 src\ASF\common\services\delay\sam\cycle_counter.c
 
+src\ASF\common\services\serial\usart_serial.c
+
+src\ASF\sam\drivers\uart\uart.c
+
+src\ASF\sam\drivers\usart\usart.c
+
 src\ASF\thirdparty\freertos\freertos-7.3.0\source\FreeRTOS_CLI.c
 
 src\ASF\thirdparty\freertos\freertos-7.3.0\source\list.c
