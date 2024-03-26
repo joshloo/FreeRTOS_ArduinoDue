@@ -1,0 +1,15 @@
+T9040 817:719.623   SEGGER J-Link V7.52a Log File
+T9040 817:719.954   DLL Compiled: Jul 28 2021 11:08:12
+T9040 817:719.988   Logging started @ 2024-03-26 02:41
+T9040 817:720.019 - 817720.037ms
+T9040 817:728.101 JLINK_ExecCommand("Device = AT91SAM3X8E", ...). 
+T9040 817:742.807   XML file found at: C:\Program Files (x86)\Atmel\Studio\7.0\atbackend\JLinkDevices.xml
+T9040 817:743.631   C:\Program Files (x86)\Atmel\Studio\7.0\atbackend\JLinkDevices.xml evaluated successfully.
+T9040 817:776.863   Device "ATSAM3X8E" selected.
+T9040 817:777.813 - 49.503ms returns 0x00
+T9040 817:785.200 JLINK_ExecCommand("ShowControlPanel", ...). 
+T9040 817:785.254 - 0.019ms returns 0x00
+T9040 817:786.532 JLINK_Close()
+T9040 817:786.693 - 0.281ms
+T9040 817:786.822   
+T9040 817:786.836   Closed
