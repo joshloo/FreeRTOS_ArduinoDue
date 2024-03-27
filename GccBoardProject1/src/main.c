@@ -170,7 +170,7 @@ static void my_led_task_1(void *pvParameters){
 	while(1){
 		if (xSemaphoreTake(semaphore_1, 100)){
 			ioport_toggle_pin_level(MY_LED_1);
-			delay_ms(500);
+			delay_ms(200);
 			xSemaphoreGive(semaphore_2);
 		}
 	}
@@ -180,7 +180,7 @@ static void my_led_task_2(void *pvParameters){
 	while(1){
 		if (xSemaphoreTake(semaphore_2, 100)){
 			ioport_toggle_pin_level(MY_LED_2);
-			delay_ms(500);
+			delay_ms(200);
 			xSemaphoreGive(semaphore_3);
 		}
 	}
@@ -190,7 +190,7 @@ static void my_led_task_3(void *pvParameters){
 	while(1){
 		if (xSemaphoreTake(semaphore_3, 100)){
 			ioport_toggle_pin_level(MY_LED_3);
-			delay_ms(500);
+			delay_ms(200);
 			xSemaphoreGive(semaphore_task_done);
 			//xSemaphoreGive(semaphore_1);
 		}
@@ -236,25 +236,31 @@ int main (void)
 	board_init();
 	ioport_init();
 
+	/* Insert application code here, after the board has been initialized. */
 	ioport_set_pin_dir(MY_LED_1, IOPORT_DIR_OUTPUT);
 	ioport_set_pin_dir(MY_LED_2, IOPORT_DIR_OUTPUT);
-	
-	/*
-	while(1){
-		ioport_toggle_pin_level(MY_LED);
-		delay_ms(100);		
-	}*/
 
-	/* Insert application code here, after the board has been initialized. */
+	usart_serial_init(UART, &usart_options);
+
+	char *s = "Welcome to my FreeRTOS app.\nUse command 1 to run LED apps.\nUse command 2 to run echo server (command 4 to quit).\nUse command 3 to run abcABC prints.\n\n";
+	while (*s != '\0' ){
+		usart_putchar(UART, *(s));
+		s++;
+	}
+
+	/* Task lists */
 	xTaskCreate(my_led_task_1, "LED 1", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker1_id);
 	xTaskCreate(my_led_task_2, "LED 2", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker2_id);
 	xTaskCreate(my_led_task_3, "LED 3", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker3_id);
 	
-	/* Create one Software Timer.*/
-	//Timer_id = xTimerCreate("Timer",5000, pdTRUE, 0, TimerCallback);
-	/* Start Timer.*/
-	//xTimerStart( Timer_id, 0);
+	xTaskCreate(vTaskRX, "RX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_rx_id);
+	xTaskCreate(vTaskTX, "TX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_id);
 
+	xTaskCreate(vTaskTX_A, "TX_A", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_a_id);
+	xTaskCreate(vTaskTX_B, "TX_B", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_b_id);
+
+	/* Semaphore lists */
+	// LED semaphores
 	vSemaphoreCreateBinary(semaphore_1);
 	vQueueAddToRegistry(semaphore_1, "Semaphore 1");
 	xSemaphoreTake(semaphore_1, 0);
@@ -267,15 +273,7 @@ int main (void)
 	vQueueAddToRegistry(semaphore_3, "Semaphore 3");
 	xSemaphoreTake(semaphore_3, 0);
 
-	//xSemaphoreGive(semaphore_1);
-
-	usart_serial_init(UART, &usart_options);
-	xTaskCreate(vTaskRX, "RX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_rx_id);
-	xTaskCreate(vTaskTX, "TX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_id);
-
-	xTaskCreate(vTaskTX_A, "TX_A", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_a_id);
-	xTaskCreate(vTaskTX_B, "TX_B", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_b_id);
-
+	// UART TX RX echoserver semaphore
 	vSemaphoreCreateBinary(semaphore_uart_rx);
 	vQueueAddToRegistry(semaphore_uart_rx, "Semaphore rx");
 	xSemaphoreTake(semaphore_uart_rx, 0);
@@ -284,8 +282,7 @@ int main (void)
 	vQueueAddToRegistry(semaphore_uart_tx, "Semaphore tx");
 	xSemaphoreTake(semaphore_uart_tx, 0);
 
-	//xSemaphoreGive(semaphore_uart_rx);
-
+	// UART ABC abc printing semaphore
 	vSemaphoreCreateBinary(semaphore_uart_tx_a);
 	vQueueAddToRegistry(semaphore_uart_tx_a, "Semaphore tx a");
 	xSemaphoreTake(semaphore_uart_tx_a, 0);
@@ -294,26 +291,41 @@ int main (void)
 	vQueueAddToRegistry(semaphore_uart_tx_b, "Semaphore tx b");
 	xSemaphoreTake(semaphore_uart_tx_b, 0);
 
-	//xSemaphoreGive(semaphore_uart_tx_b);
-
 	vSemaphoreCreateBinary(semaphore_task_done);
 	vQueueAddToRegistry(semaphore_task_done, "Semaphore Task done");
 	xSemaphoreTake(semaphore_task_done, 0);
 
+	// Deciding which semaphore to run
 	xSemaphoreGive(semaphore_task_done);
+	//xSemaphoreGive(semaphore_1);
+	//xSemaphoreGive(semaphore_uart_rx);
+	//xSemaphoreGive(semaphore_uart_tx_a);
 
 	xTaskCreate(vTask_sampleInput, "Sample", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_sample_id);
 
 	/* Create a queue*/
 	Queue_id = xQueueCreate(1,sizeof(uint8_t *));
 
+	/*Start Scheduler*/
+	vTaskStartScheduler();
+
+	/* Test codes go here */
 	/*
+	// Test LED
+	while(1){
+		ioport_toggle_pin_level(MY_LED_1);
+		delay_ms(100);		
+	}*/
+
+	/*
+	// Test UART
 	while(1){
 		usart_serial_getchar(UART, &received_byte);
 		usart_serial_putchar(UART, received_byte);		
 	}*/
 
-/*
+	/*
+	// Test LED toggle
 	ioport_set_pin_level(MY_LED_1, false);
 	ioport_set_pin_level(MY_LED_2, false);
 	ioport_set_pin_level(MY_LED_3, false);
@@ -328,16 +340,13 @@ int main (void)
 	ioport_set_pin_level(MY_LED_2, false);
 	ioport_set_pin_level(MY_LED_3, false);
 	delay_ms(100);
-*/
+	*/
 
 	/* Create one manager task.*/
 	//xTaskCreate(manager_task,"manager",configMINIMAL_STACK_SIZE+1000,NULL,tskIDLE_PRIORITY+3, &manager_id);
 
-	/*Start Scheduler*/
-	vTaskStartScheduler();
+	/* Create one Software Timer.*/
+	//Timer_id = xTimerCreate("Timer",5000, pdTRUE, 0, TimerCallback);
+	/* Start Timer.*/
+	//xTimerStart( Timer_id, 0);
 }
-
-/*
-sysclk_enable_peripheral_clock(CONSOLE_UART_ID);
-stdio_serial_init(CONF_UART)
-*/
