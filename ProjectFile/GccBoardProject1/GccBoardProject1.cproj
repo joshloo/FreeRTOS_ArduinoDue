@@ -275,6 +275,7 @@
       <ToolName>J-Link over IP</ToolName>
     </com_atmel_avrdbg_tool_samice>
     <avrtoolinterfaceclock>4000000</avrtoolinterfaceclock>
+    <AsfVersion>3.5.0</AsfVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
