@@ -5190,7 +5190,7 @@ void vTask_sampleInput(void *pvParameters) {
    82008:	f89d 3007 	ldrb.w	r3, [sp, #7]
    8200c:	2b32      	cmp	r3, #50	; 0x32
    8200e:	d00b      	beq.n	82028 <vTask_sampleInput+0xac>
-   82010:	2b33      	cmp	r3, #51	; 0x33
+   82010:	2b34      	cmp	r3, #52	; 0x34
    82012:	d011      	beq.n	82038 <vTask_sampleInput+0xbc>
    82014:	2b31      	cmp	r3, #49	; 0x31
    82016:	d0b7      	beq.n	81f88 <vTask_sampleInput+0xc>
@@ -5294,7 +5294,7 @@ void vTaskRX(void *pvParameters) {
 		while (uart_read((Uart*)p_usart, data));
    820e0:	4d19      	ldr	r5, [pc, #100]	; (82148 <vTaskRX+0x70>)
    820e2:	e00e      	b.n	82102 <vTaskRX+0x2a>
-			if (getchar == '4') xSemaphoreGive(semaphore_task_done);
+			if (getchar == '3') xSemaphoreGive(semaphore_task_done);
    820e4:	2300      	movs	r3, #0
    820e6:	461a      	mov	r2, r3
    820e8:	4619      	mov	r1, r3
@@ -5326,9 +5326,9 @@ void vTaskRX(void *pvParameters) {
    8211a:	47a0      	blx	r4
    8211c:	2800      	cmp	r0, #0
    8211e:	d1f9      	bne.n	82114 <vTaskRX+0x3c>
-			if (getchar == '4') xSemaphoreGive(semaphore_task_done);
+			if (getchar == '3') xSemaphoreGive(semaphore_task_done);
    82120:	f89d 3007 	ldrb.w	r3, [sp, #7]
-   82124:	2b34      	cmp	r3, #52	; 0x34
+   82124:	2b33      	cmp	r3, #51	; 0x33
    82126:	d0dd      	beq.n	820e4 <vTaskRX+0xc>
 				if (Queue_id != 0) xQueueSend(Queue_id, (void *)&getchar, 1000);
    82128:	4b0c      	ldr	r3, [pc, #48]	; (8215c <vTaskRX+0x84>)
@@ -5409,7 +5409,7 @@ int main (void)
 
 	usart_serial_init(UART, &usart_options);
 
-	char *s = "Welcome to my FreeRTOS app.\nUse command 1 to run LED apps.\nUse command 2 to run echo server (command 4 to quit).\nUse command 3 to run abcABC prints.\n\n";
+	char *s = "Welcome to my FreeRTOS app.\r\nPress key \"1\" to run LED apps.\r\nPress key \"2\" to run echo server (key 3 to quit).\r\nPress key \"4\" to run abcABC prints.\r\n";
 	while (*s != '\0' ){
 		usart_putchar(UART, *(s));
    821b6:	4e88      	ldr	r6, [pc, #544]	; (823d8 <main+0x278>)
@@ -6221,38 +6221,38 @@ int main (void)
    8289c:	72462079 	.word	0x72462079
    828a0:	54526565 	.word	0x54526565
    828a4:	6120534f 	.word	0x6120534f
-   828a8:	0a2e7070 	.word	0x0a2e7070
-   828ac:	20657355 	.word	0x20657355
-   828b0:	6d6d6f63 	.word	0x6d6d6f63
-   828b4:	20646e61 	.word	0x20646e61
-   828b8:	6f742031 	.word	0x6f742031
-   828bc:	6e757220 	.word	0x6e757220
-   828c0:	44454c20 	.word	0x44454c20
-   828c4:	70706120 	.word	0x70706120
-   828c8:	550a2e73 	.word	0x550a2e73
-   828cc:	63206573 	.word	0x63206573
-   828d0:	616d6d6f 	.word	0x616d6d6f
-   828d4:	3220646e 	.word	0x3220646e
-   828d8:	206f7420 	.word	0x206f7420
-   828dc:	206e7572 	.word	0x206e7572
-   828e0:	6f686365 	.word	0x6f686365
-   828e4:	72657320 	.word	0x72657320
-   828e8:	20726576 	.word	0x20726576
-   828ec:	6d6f6328 	.word	0x6d6f6328
-   828f0:	646e616d 	.word	0x646e616d
-   828f4:	74203420 	.word	0x74203420
-   828f8:	7571206f 	.word	0x7571206f
-   828fc:	2e297469 	.word	0x2e297469
-   82900:	6573550a 	.word	0x6573550a
-   82904:	6d6f6320 	.word	0x6d6f6320
-   82908:	646e616d 	.word	0x646e616d
-   8290c:	74203320 	.word	0x74203320
-   82910:	7572206f 	.word	0x7572206f
-   82914:	6261206e 	.word	0x6261206e
-   82918:	43424163 	.word	0x43424163
-   8291c:	69727020 	.word	0x69727020
-   82920:	2e73746e 	.word	0x2e73746e
-   82924:	00000a0a 	.word	0x00000a0a
+   828a8:	0d2e7070 	.word	0x0d2e7070
+   828ac:	6572500a 	.word	0x6572500a
+   828b0:	6b207373 	.word	0x6b207373
+   828b4:	22207965 	.word	0x22207965
+   828b8:	74202231 	.word	0x74202231
+   828bc:	7572206f 	.word	0x7572206f
+   828c0:	454c206e 	.word	0x454c206e
+   828c4:	70612044 	.word	0x70612044
+   828c8:	0d2e7370 	.word	0x0d2e7370
+   828cc:	6572500a 	.word	0x6572500a
+   828d0:	6b207373 	.word	0x6b207373
+   828d4:	22207965 	.word	0x22207965
+   828d8:	74202232 	.word	0x74202232
+   828dc:	7572206f 	.word	0x7572206f
+   828e0:	6365206e 	.word	0x6365206e
+   828e4:	73206f68 	.word	0x73206f68
+   828e8:	65767265 	.word	0x65767265
+   828ec:	6b282072 	.word	0x6b282072
+   828f0:	33207965 	.word	0x33207965
+   828f4:	206f7420 	.word	0x206f7420
+   828f8:	74697571 	.word	0x74697571
+   828fc:	0a0d2e29 	.word	0x0a0d2e29
+   82900:	73657250 	.word	0x73657250
+   82904:	656b2073 	.word	0x656b2073
+   82908:	34222079 	.word	0x34222079
+   8290c:	6f742022 	.word	0x6f742022
+   82910:	6e757220 	.word	0x6e757220
+   82914:	63626120 	.word	0x63626120
+   82918:	20434241 	.word	0x20434241
+   8291c:	6e697270 	.word	0x6e697270
+   82920:	0d2e7374 	.word	0x0d2e7374
+   82924:	0000000a 	.word	0x0000000a
    82928:	2044454c 	.word	0x2044454c
    8292c:	00000031 	.word	0x00000031
    82930:	2044454c 	.word	0x2044454c

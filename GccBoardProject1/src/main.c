@@ -89,7 +89,7 @@ void vTask_sampleInput(void *pvParameters) {
 					// Echo server
 					xSemaphoreGive(semaphore_uart_rx);
 					break;
-				case ('3'):
+				case ('4'):
 					// Print ABC abc
 					xSemaphoreGive(semaphore_uart_tx_a);
 					break;
@@ -106,8 +106,8 @@ void vTaskRX(void *pvParameters) {
 	while (1){
 		if (xSemaphoreTake(semaphore_uart_rx, 100)){
 			usart_serial_getchar(UART, &getchar);
-			// 'd' indicates exit condition for echoserver
-			if (getchar == '4') xSemaphoreGive(semaphore_task_done);
+			// '3' indicates exit condition for echo server
+			if (getchar == '3') xSemaphoreGive(semaphore_task_done);
 			else {
 				if (Queue_id != 0) xQueueSend(Queue_id, (void *)&getchar, 1000);
 				//ioport_toggle_pin_level(MY_LED_1);
@@ -242,7 +242,7 @@ int main (void)
 
 	usart_serial_init(UART, &usart_options);
 
-	char *s = "Welcome to my FreeRTOS app.\nUse command 1 to run LED apps.\nUse command 2 to run echo server (command 4 to quit).\nUse command 3 to run abcABC prints.\n\n";
+	char *s = "Welcome to my FreeRTOS app.\r\nPress key \"1\" to run LED apps.\r\nPress key \"2\" to run echo server (key 3 to quit).\r\nPress key \"4\" to run abcABC prints.\r\n";
 	while (*s != '\0' ){
 		usart_putchar(UART, *(s));
 		s++;
