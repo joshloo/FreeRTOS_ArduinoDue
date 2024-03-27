@@ -73,6 +73,37 @@ void vTaskTX(void *pvParameters) {
 	}
 }
 
+xSemaphoreHandle semaphore_uart_tx_a;
+xSemaphoreHandle semaphore_uart_tx_b;
+xTaskHandle worker_tx_a_id;
+xTaskHandle worker_tx_b_id;
+
+// Swap if and for lines for different sequencing. bytes or chunk
+// Put the semaphore give in or outside the for loop
+void vTaskTX_A(void *pvParameters) {
+	char c;
+	while (1){
+		if (xSemaphoreTake(semaphore_uart_tx_a, 100)){
+			for (c = 'a'; c <= 'z'; c++){
+				usart_serial_putchar(UART, c);
+			}
+			xSemaphoreGive(semaphore_uart_tx_b);
+		}
+	}
+}
+
+void vTaskTX_B(void *pvParameters) {
+	char c;
+	while (1){
+		if (xSemaphoreTake(semaphore_uart_tx_b, 100)){
+			for (c = 'A'; c <= 'Z'; c++){
+				usart_serial_putchar(UART, c);
+			}
+			xSemaphoreGive(semaphore_uart_tx_a);
+		}
+	}
+}
+
 static usart_serial_options_t usart_options = {
 	.baudrate = 9600,
 	.charlength = US_MR_CHRL_8_BIT,
@@ -199,6 +230,9 @@ int main (void)
 	xTaskCreate(vTaskRX, "RX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_rx_id);
 	xTaskCreate(vTaskTX, "TX", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_id);
 
+	xTaskCreate(vTaskTX_A, "TX_A", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_a_id);
+	xTaskCreate(vTaskTX_B, "TX_B", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_tx_b_id);
+
 	vSemaphoreCreateBinary(semaphore_uart_rx);
 	vQueueAddToRegistry(semaphore_uart_rx, "Semaphore rx");
 	xSemaphoreTake(semaphore_uart_rx, 0);
@@ -207,7 +241,17 @@ int main (void)
 	vQueueAddToRegistry(semaphore_uart_tx, "Semaphore tx");
 	xSemaphoreTake(semaphore_uart_tx, 0);
 
-	xSemaphoreGive(semaphore_uart_rx);
+	//xSemaphoreGive(semaphore_uart_rx);
+
+	vSemaphoreCreateBinary(semaphore_uart_tx_a);
+	vQueueAddToRegistry(semaphore_uart_tx_a, "Semaphore tx a");
+	xSemaphoreTake(semaphore_uart_tx_a, 0);
+
+	vSemaphoreCreateBinary(semaphore_uart_tx_b);
+	vQueueAddToRegistry(semaphore_uart_tx_b, "Semaphore tx b");
+	xSemaphoreTake(semaphore_uart_tx_b, 0);
+
+	xSemaphoreGive(semaphore_uart_tx_b);
 
 	/* Create a queue*/
 	Queue_id = xQueueCreate(1,sizeof(uint8_t *));
