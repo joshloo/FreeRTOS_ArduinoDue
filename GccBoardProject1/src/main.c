@@ -36,25 +36,84 @@
 #define MY_LED_3 IOPORT_CREATE_PIN(PIOC, 22)
 
 uint8_t *received_byte;
-xTaskHandle worker_rx_id;
-xTaskHandle worker_tx_id;
+
+/* Queue handler declaration*/
 xQueueHandle Queue_id;
 
+/* Semaphore handler declaration*/
 xSemaphoreHandle semaphore_uart_tx;
 xSemaphoreHandle semaphore_uart_rx;
+xSemaphoreHandle semaphore_uart_tx_a;
+xSemaphoreHandle semaphore_uart_tx_b;
+xSemaphoreHandle notification_semaphore;
+xSemaphoreHandle semaphore_1;
+xSemaphoreHandle semaphore_2;
+xSemaphoreHandle semaphore_3;
+xSemaphoreHandle semaphore_task_done;
 
-void vTaskRX(void *pvParameters) {
+/* Task handler declaration*/
+xTaskHandle worker1_id;
+xTaskHandle worker2_id;
+xTaskHandle worker3_id;
+xTaskHandle worker_rx_id;
+xTaskHandle worker_tx_id;
+xTaskHandle worker_tx_a_id;
+xTaskHandle worker_tx_b_id;
+xTaskHandle manager_id;
+xTaskHandle worker_sample_id;
+
+/* Timer handler declaration*/
+xTimerHandle Timer_id;
+
+void vTask_sampleInput(void *pvParameters) {
 	char c;
 	while (1){
-		if (xSemaphoreTake(semaphore_uart_rx, 100)){
-			uint8_t *getchar ;
-			usart_serial_getchar(UART, &getchar);
-			
-			if (Queue_id != 0) xQueueSend(Queue_id, (void *)&getchar, 1000);
+		// if task is done, take all semaphor to make sure no task is running			
+		if (xSemaphoreTake(semaphore_task_done, 100)) {
+			xSemaphoreTake(semaphore_1, 0);
+			xSemaphoreTake(semaphore_2, 0);
+			xSemaphoreTake(semaphore_3, 0);
+			xSemaphoreTake(semaphore_uart_tx, 0);
+			xSemaphoreTake(semaphore_uart_rx, 0);
+			xSemaphoreTake(semaphore_uart_tx_a, 0);
+			xSemaphoreTake(semaphore_uart_tx_b, 0);
 
-			ioport_toggle_pin_level(MY_LED_1);
-			//usart_serial_putchar(UART, getchar);
-			xSemaphoreGive(semaphore_uart_tx);
+			char getchar ;
+			usart_serial_getchar(UART, &getchar);
+			switch (getchar){
+				case ('1'):
+					// LED blink
+					xSemaphoreGive(semaphore_1);
+					break;
+				case ('2'):
+					// Echo server
+					xSemaphoreGive(semaphore_uart_rx);
+					break;
+				case ('3'):
+					// Print ABC abc
+					xSemaphoreGive(semaphore_uart_tx_a);
+					break;
+				default:
+					xSemaphoreGive(semaphore_task_done);
+					break;
+			}			
+		}
+	}
+}
+
+void vTaskRX(void *pvParameters) {
+	char getchar;
+	while (1){
+		if (xSemaphoreTake(semaphore_uart_rx, 100)){
+			usart_serial_getchar(UART, &getchar);
+			// 'd' indicates exit condition for echoserver
+			if (getchar == '4') xSemaphoreGive(semaphore_task_done);
+			else {
+				if (Queue_id != 0) xQueueSend(Queue_id, (void *)&getchar, 1000);
+				//ioport_toggle_pin_level(MY_LED_1);
+				//usart_serial_putchar(UART, getchar);
+				xSemaphoreGive(semaphore_uart_tx);
+			}
 		}
 	}	
 }
@@ -67,16 +126,11 @@ void vTaskTX(void *pvParameters) {
 			if (Queue_id != 0) xQueueReceive(Queue_id,&putchar,1000);
 
 			usart_serial_putchar(UART, putchar);
-			ioport_toggle_pin_level(MY_LED_2);
+			//ioport_toggle_pin_level(MY_LED_2);
 			xSemaphoreGive(semaphore_uart_rx);
 		}
 	}
 }
-
-xSemaphoreHandle semaphore_uart_tx_a;
-xSemaphoreHandle semaphore_uart_tx_b;
-xTaskHandle worker_tx_a_id;
-xTaskHandle worker_tx_b_id;
 
 // Swap if and for lines for different sequencing. bytes or chunk
 // Put the semaphore give in or outside the for loop
@@ -99,7 +153,8 @@ void vTaskTX_B(void *pvParameters) {
 			for (c = 'A'; c <= 'Z'; c++){
 				usart_serial_putchar(UART, c);
 			}
-			xSemaphoreGive(semaphore_uart_tx_a);
+			//xSemaphoreGive(semaphore_uart_tx_a);
+			xSemaphoreGive(semaphore_task_done);
 		}
 	}
 }
@@ -111,24 +166,11 @@ static usart_serial_options_t usart_options = {
 	.stopbits = US_MR_NBSTOP_1_BIT
 };
 
-/* Task handler declaration*/
-xTaskHandle worker1_id;
-xTaskHandle worker2_id;
-xTaskHandle worker3_id;
-xTimerHandle Timer_id;
-
-xSemaphoreHandle notification_semaphore;
-xSemaphoreHandle semaphore_1;
-xSemaphoreHandle semaphore_2;
-xSemaphoreHandle semaphore_3;
-xTaskHandle manager_id;
-
-
 static void my_led_task_1(void *pvParameters){
 	while(1){
 		if (xSemaphoreTake(semaphore_1, 100)){
 			ioport_toggle_pin_level(MY_LED_1);
-			delay_ms(100);
+			delay_ms(500);
 			xSemaphoreGive(semaphore_2);
 		}
 	}
@@ -138,7 +180,7 @@ static void my_led_task_2(void *pvParameters){
 	while(1){
 		if (xSemaphoreTake(semaphore_2, 100)){
 			ioport_toggle_pin_level(MY_LED_2);
-			delay_ms(100);
+			delay_ms(500);
 			xSemaphoreGive(semaphore_3);
 		}
 	}
@@ -148,8 +190,9 @@ static void my_led_task_3(void *pvParameters){
 	while(1){
 		if (xSemaphoreTake(semaphore_3, 100)){
 			ioport_toggle_pin_level(MY_LED_3);
-			delay_ms(100);
-			xSemaphoreGive(semaphore_1);
+			delay_ms(500);
+			xSemaphoreGive(semaphore_task_done);
+			//xSemaphoreGive(semaphore_1);
 		}
 	}
 }
@@ -251,7 +294,15 @@ int main (void)
 	vQueueAddToRegistry(semaphore_uart_tx_b, "Semaphore tx b");
 	xSemaphoreTake(semaphore_uart_tx_b, 0);
 
-	xSemaphoreGive(semaphore_uart_tx_b);
+	//xSemaphoreGive(semaphore_uart_tx_b);
+
+	vSemaphoreCreateBinary(semaphore_task_done);
+	vQueueAddToRegistry(semaphore_task_done, "Semaphore Task done");
+	xSemaphoreTake(semaphore_task_done, 0);
+
+	xSemaphoreGive(semaphore_task_done);
+
+	xTaskCreate(vTask_sampleInput, "Sample", configMINIMAL_STACK_SIZE+1000 , NULL, 2, &worker_sample_id);
 
 	/* Create a queue*/
 	Queue_id = xQueueCreate(1,sizeof(uint8_t *));
