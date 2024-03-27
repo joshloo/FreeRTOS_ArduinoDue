@@ -6368,7 +6368,7 @@ OUTPUT(GccBoardProject1.elf elf32-littlearm)
  .debug_macro   0x00017c10       0x5d src/main.o
  .debug_macro   0x00017c6d       0x70 src/main.o
 
-.debug_line     0x00000000     0xd552
+.debug_line     0x00000000     0xd551
  .debug_line    0x00000000      0xb70 src/ASF/common/services/delay/sam/cycle_counter.o
  .debug_line    0x00000b70      0xd1d src/ASF/sam/drivers/uart/uart.o
  .debug_line    0x0000188d     0x1244 src/ASF/sam/drivers/usart/usart.o
@@ -6386,9 +6386,9 @@ OUTPUT(GccBoardProject1.elf elf32-littlearm)
  .debug_line    0x0000a0bd      0xb45 src/ASF/sam/utils/cmsis/sam3x/source/templates/exceptions.o
  .debug_line    0x0000ac02      0xb8e src/ASF/sam/utils/cmsis/sam3x/source/templates/gcc/startup_sam3x.o
  .debug_line    0x0000b790      0xbc0 src/ASF/sam/utils/cmsis/sam3x/source/templates/system_sam3x.o
- .debug_line    0x0000c350     0x1202 src/main.o
+ .debug_line    0x0000c350     0x1201 src/main.o
 
-.debug_str      0x00000000    0x6bb75
+.debug_str      0x00000000    0x6bbd2
  .debug_str     0x00000000    0x5edc5 src/ASF/common/services/delay/sam/cycle_counter.o
                               0x5f157 (size before relaxing)
  .debug_str     0x0005edc5      0x3f7 src/ASF/sam/drivers/uart/uart.o
@@ -6423,8 +6423,8 @@ OUTPUT(GccBoardProject1.elf elf32-littlearm)
                               0x5f110 (size before relaxing)
  .debug_str     0x0006a60a      0x195 src/ASF/sam/utils/cmsis/sam3x/source/templates/system_sam3x.o
                               0x5f2d4 (size before relaxing)
- .debug_str     0x0006a79f     0x13d6 src/main.o
-                              0x67ce8 (size before relaxing)
+ .debug_str     0x0006a79f     0x1433 src/main.o
+                              0x67cf4 (size before relaxing)
 
 .debug_frame    0x00000000     0x1d50
  .debug_frame   0x00000000       0x20 src/ASF/common/services/delay/sam/cycle_counter.o

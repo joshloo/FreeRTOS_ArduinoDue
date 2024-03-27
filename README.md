@@ -17,3 +17,5 @@ UsefulMaterial contains Microchip FreeRTOS application note, my custom screensho
 ![Flash Success](https://github.com/joshloo/FreeRTOS_ArduinoDue/blob/main/UsefulMaterial/FlashSuccess.PNG)
 
 ![Due Pinout](https://github.com/joshloo/FreeRTOS_ArduinoDue/blob/main/UsefulMaterial/DuePinout.png)
+
+https://github.com/joshloo/FreeRTOS_ArduinoDue/blob/main/UsefulMaterial/DemoVideo.mp4

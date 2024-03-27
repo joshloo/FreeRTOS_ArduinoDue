@@ -45,7 +45,8 @@ xTimerHandle Timer_id;
 void vTask_sampleInput(void *pvParameters) {
 	char c;
 	while (1){
-		// if task is done, take all semaphor to make sure no task is running			
+		// if task is started or other task done,
+		// take all semaphore make sure no task is running
 		if (xSemaphoreTake(semaphore_task_done, 100)) {
 			xSemaphoreTake(semaphore_1, 0);
 			xSemaphoreTake(semaphore_2, 0);
